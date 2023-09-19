@@ -1,0 +1,307 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <title>주문 및 테이블 목록</title>
+  <style>
+    .container {
+      display: flex;
+      align-items: flex-start;
+      /* 테이블 목록이 위로 오도록 설정 */
+      height: 100%;
+    }
+
+    .order-list {
+      flex: 1;
+      max-width: 20%;
+      margin-right: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+      min-height: 90vh;
+      /* 높이를 조정할 부분입니다. */
+    }
+
+    .table-container {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-gap: 10px;
+      width: 95%;
+      min-height: 39vh;
+    }
+
+    .table {
+      width: 90%;
+      /* 테이블 가로 크기 조정 */
+      height: 85%;
+      /* 테이블 세로 크기 조정 */
+      background-color: #ccc;
+      border: 1px solid #888;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .table2 {
+      width: 200%;
+      /* 테이블 가로 크기 조정 */
+      height: 85%;
+      /* 테이블 세로 크기 조정 */
+      background-color: #ccc;
+      border: 1px solid #888;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .table3 {
+      width: 90%;
+      /* 테이블 가로 크기 조정 */
+      height: 85%;
+      /* 테이블 세로 크기 조정 */
+      background-color: #ccc;
+      border: 1px solid #888;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .rectangle-container {
+      display: flex;
+      flex-direction: column;
+      /* 수직으로 정렬 */
+      align-items: center;
+      /* 가운데 정렬 */
+      width: 80%;
+      height: 100%;
+
+    }
+
+    .rectangle {
+      width: 95%;
+      /* 테이블 컨테이너의 가로 길이와 동일하게 조정 */
+      height: 45px;
+      /* 높이 조정 */
+      background-color: #ccc;
+      margin: 10px 0;
+      /* 위아래 여백 조정 */
+    }
+
+    .reception_title {
+      width: 95%;
+      /* 테이블 컨테이너의 가로 길이와 동일하게 조정 */
+      height: 40px;
+      /* 높이 조정 */
+      background-color: #f0e440;
+      margin-top: 10px;
+      /* 위아래 여백 조정 */
+    }
+
+    .reception {
+      width: 95%;
+      /* 테이블 컨테이너의 가로 길이와 동일하게 조정 */
+      height: 26vh;
+      /* 높이 조정 */
+      background-color: #eee9a2;
+      /* 위아래 여백 조정 */
+      padding-left: 20px;
+      
+    }
+  </style>
+</head>
+
+<body>
+  <button onclick="rerole()">역할 바꾸기</button>
+  <button onclick="signout()">로그아웃</button>
+  <div class="container">
+    <div class="order-list">
+      <h2>주문 목록</h2>
+      <table id="table">
+        <!-- 여기에 주문 목록을 표시하는 테이블을 만들어주세요 -->
+
+      </table>
+    </div>
+
+    <div class="rectangle-container">
+      <div class="rectangle"></div>
+
+      <div class="table-container">
+        <!-- 테이블 목록을 표시하는 부분입니다. -->
+        <!-- 예시로 2행 8열의 테이블을 만듭니다. -->
+        <!-- 각 테이블에는 순차적으로 번호를 부여합니다. -->
+        {% for i in "abcdefghij" %}
+        <div class="table" id="{{forloop.counter}}" onclick="table_clicked({{ forloop.counter }})">테이블 {{forloop.counter }}</div>
+        {% endfor %}
+        <div class="table2" id="11" style="z-index: 1;" onclick="table_clicked(11)">테이블 11</div>
+        <div class="table3"></div>
+        <div class="table2" id="12" style="z-index: 1;" onclick="table_clicked(12)">테이블 12</div>
+        <div class="table3"></div>
+        <div class="table" id="13" onclick="table_clicked(13)">테이블 13</div>
+        <div class="table" id="14" onclick="table_clicked(14)">테이블 14</div>
+      </div>
+
+      <div class="rectangle" style="margin-top: -20px;">운동장</div>
+      <div class="reception_title">
+        주문 접수하기
+        <button onclick="addOrder()">주문 추가</button>
+      </div>
+      <div style="display: flex;flex-direction: row; width:95%;">
+        <div class="reception" style="display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 5px;
+        width: 50%;
+        min-height: 30vh;
+        padding-top: 10px;
+        padding-bottom: 10px">
+          <button onclick="addOrder('오뎅탕')">오뎅탕</button>
+          <button onclick="addOrder('떡볶이')">떡볶이</button>
+          <button onclick="addOrder('모듬튀김')">모듬튀김</button>
+          <button onclick="addOrder('가라아게&감자튀김')" style="font-size: 10px";>가라아게&감자튀김</button>
+          <button onclick="addOrder('순대')">순대</button>
+          <button onclick="addOrder('콘치즈')">콘치즈</button>
+          <button onclick="addOrder('황도')">황도</button>
+          <button onclick="addOrder('콜라')">콜라</button>
+          <button onclick="addOrder('사이다')">사이다</button>
+          <button onclick="addOrder('생수')">생수</button>
+          <button onclick="addOrder('#기타')">기타</button>
+        </div>
+        <div class="reception" id="reception_select_box" style = "min-height: 30vh;    padding-top: 10px;
+        padding-bottom: 10px">
+
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+  let selected_table_no = "";
+  function table_clicked(tableNumber) {
+    if (selected_table_no == "") {
+      selected_table_no = tableNumber;
+      let focus = document.getElementById(selected_table_no.toString());
+      focus.style.backgroundColor = "red";
+      control_reception_box("show")
+    } else if (selected_table_no != "") {
+      if (selected_table_no != tableNumber) {
+        document.getElementById(selected_table_no.toString()).style.backgroundColor = "#ccc";
+        selected_table_no = tableNumber;
+        let focus = document.getElementById(selected_table_no.toString());
+
+        document.getElementById(tableNumber.toString()).style.backgroundColor = "red";
+        control_reception_box("show")
+      } else {
+        selected_table_no = "";
+        document.getElementById(tableNumber.toString()).style.backgroundColor = "#ccc";
+        control_reception_box("hide")
+      }
+    }
+  }
+  let reception_box = document.getElementById("reception_select_box")
+  function addTableRow() {
+    let newRow = document.createElement('tr');
+
+    // 음식메뉴 입력란
+    let foodCell = document.createElement('td');
+    foodCell.innerHTML = '<input type="text" class="food-input" style = "width: 86px">';
+    newRow.appendChild(foodCell);
+
+    // 개수 선택 입력란
+    let countCell = document.createElement('td');
+    countCell.innerHTML = '<input type="number" class="count-input" min="1" style = "width:30px">';
+    newRow.appendChild(countCell);
+
+    // 디테일 입력란
+    let detailCell = document.createElement('td');
+    detailCell.innerHTML = '<input type="text" class="detail-input">';
+    newRow.appendChild(detailCell);
+
+    // 삭제 버튼
+    let deleteCell = document.createElement('td');
+    deleteCell.innerHTML = '<button onclick="deleteTableRow(this)">삭제</button>';
+    newRow.appendChild(deleteCell);
+
+    document.getElementById('order-table').appendChild(newRow);
+  }
+
+  function deleteTableRow(button) {
+    let row = button.parentNode.parentNode;
+    row.parentNode.removeChild(row);
+  }
+  function control_reception_box(show_or_hide) {
+    if (show_or_hide == "hide") {
+      reception_box.innerHTML = "";
+    } else if (show_or_hide == "show") {
+      console.log(reception_box)
+      reception_box.innerHTML = `
+      <div>
+        <table id="order-table">
+          <tr>
+            <th>메뉴</th>
+            <th>개수</th>
+            <th>디테일</th>
+            <th>삭제</th>
+          </tr>
+        </table>
+        <button onclick="addTableRow()">+ 추가</button>
+      </div>
+    `;
+      addTableRow();
+    }
+  }
+  function show_unserved_order() {
+    let table = document.getElementById("table")
+    let code = `<tr>
+                <th>주문번호</th>
+                <th>테이블번호</th>
+                <th>음식</th>
+                <th>개수</th>
+                <th>주문시간</th>
+            </tr>`
+    const ajax = fetch("/get_not_served").then((res) => res.json()).then(function (result) {
+      console.log(result)
+      for (let i = 0; i < result.length; i++) {
+        var a = result[i]
+        code += `<tr>
+              <th>${a.id}</th>
+              <th>${a["tableNumber"]}</th>
+              <th>${a["food"]}</th>
+              <th>${a["count"]}</th>
+              <th>${a["receptionTime"]}</th>
+          </tr>
+          `
+      }
+      console.log(code)
+      table.innerHTML += code;
+    })
+  }
+  show_unserved_order()
+
+  function signout() {
+    const ajax = fetch("/signout").then((res) => location.reload())
+  }
+  function rerole() {
+    console.log("123")
+    location.href = "/main?ischange=true"
+  }
+  function addOrder(menu){
+    let table = document.getElementById("order-table")
+    if (table!=null){
+      let childElements = table.children;
+// <tr> 태그만 선택하기
+      let trElements = Array.from(childElements).filter(element => element.tagName === 'TR');
+      trElements.forEach(function(tr){
+          if (menu == tr.children[0].textContent){
+            
+          }
+      })
+    }
+  }
+
+</script>
+
+</html>

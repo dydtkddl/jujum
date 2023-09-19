@@ -1,0 +1,36 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <p>메인화면</p>
+  <button id = "signupbutton" onclick = "signupbuttonclick()" >직원등록</button>
+
+  <form action="/home" method = "post">
+    {% csrf_token %}
+    <!-- name -->
+    <label for="name">이름:</label>
+    <input type="text" id="name" name="name"><br><br>
+
+    <!-- studentNumber -->
+    <label for="studentNumber">학번:</label>
+    <input type="text" id="studentNumber" name="studentNumber"><br><br>
+
+    <!-- phoneNumber -->
+    <label for="phoneNumber">전화번호:</label>
+    <input type="text" id="phoneNumber" name="phoneNumber"><br><br>
+
+    <input type="submit" value="제출">
+    {{text}}
+  </form>
+</body>
+</html>
+<script>
+  function signupbuttonclick(){
+    targeturl = "/signup"
+    location.href = targeturl
+  }
+  
+</script>

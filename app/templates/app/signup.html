@@ -1,0 +1,48 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <p>직원 등록창</p>
+  <form action="/signup" method = "post">
+    {% csrf_token %}
+    <!-- name -->
+    <label for="name">이름:</label>
+    <input type="text" id="name" name="name"><br><br>
+
+    <!-- studentNumber -->
+    <label for="studentNumber">학번:</label>
+    <input type="text" id="studentNumber" name="studentNumber"><br><br>
+
+    <!-- phoneNumber -->
+    <label for="phoneNumber" >전화번호:</label>
+    <input type="text" id="phoneNumber" name="phoneNumber"><br><br>
+
+    <input type="submit" value="제출">
+    {{text}}
+  </form>
+</body>
+</html>
+<script>
+  var text = "{{text}}"
+  console.log(text)
+  if (text=="200"){
+    const data = {
+      name : "{{name}}",
+      studentNumber : "{{studentNumber}}",
+      phoneNumber : "{{phoneNumber}}"
+    }
+    const ajax = fetch("/register",{
+      method: "POST",
+      headers:{
+              "X-CSRFToken": '{{csrf_token}}',
+           },
+      body: JSON.stringify(data)
+           
+  })
+    console.log(1)
+    location.href= "/home"
+  }
+</script>

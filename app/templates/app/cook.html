@@ -1,0 +1,21 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <button onclick="rerole()">역할 바꾸기</button>
+  <button onclick="signout()">로그아웃</button>
+  쿠킹창
+</body>
+<script>
+  function signout(){
+    const ajax = fetch("/signout").then((res)=>location.reload())
+  }
+  function rerole(){
+    console.log("123")
+    location.href =  "/main?ischange=true"
+  }
+</script>
+</html>

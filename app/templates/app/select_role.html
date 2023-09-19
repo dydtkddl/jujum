@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Role Selection</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    button {
+      font-size: 35px;
+      padding: 100px 100px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    button.button2 {
+      font-size: 16px;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Role Selection</h1>
+  <button class="button2" onclick="signout()">로그아웃</button>
+  <br>
+  <button onclick="selectRole('cook')">조리팀</button>
+  <button onclick="selectRole('carry')">운반팀</button>
+  <button onclick="selectRole('serve')">중앙통제(키오스크)</button>
+</body>
+<script>
+  function selectRole(role){
+  
+    const ajax = fetch("/rerole",{
+      method: "POST",
+      headers:{
+              "X-CSRFToken": '{{csrf_token}}',
+           },
+      body: JSON.stringify({role : role})
+           
+  }).then((res)=> location.href = "/main")}
+
+  function signout(){
+  }
+</script>
+</html>
