@@ -23,4 +23,8 @@ class Order(models.Model):
   isService = models.IntegerField()
   detail = models.TextField(null = True)
 
-  
+class EachOrder(models.Model):
+  order = models.ForeignKey(Order, on_delete=models.CASCADE, null=False)
+  nth = models.IntegerField()
+  isCooked = models.IntegerField(default=0)
+  cooker = models.ForeignKey(Users, on_delete=models.CASCADE, null=True)

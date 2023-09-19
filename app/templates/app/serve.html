@@ -1,6 +1,7 @@
 <html lang="en">
 
 <head>
+  {% load static %}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
@@ -15,12 +16,14 @@
 
     .order-list {
       flex: 1;
-      max-width: 20%;
+      max-width: 30%;
       margin-right: 20px;
       padding: 10px;
       border: 1px solid #ccc;
       background-color: #f9f9f9;
-      min-height: 90vh;
+    overflow-y: auto;
+      height: 90vh;
+      
       /* 높이를 조정할 부분입니다. */
     }
 
@@ -77,9 +80,8 @@
       /* 수직으로 정렬 */
       align-items: center;
       /* 가운데 정렬 */
-      width: 80%;
+      width: 73%;
       height: 100%;
-
     }
 
     .rectangle {
@@ -110,17 +112,32 @@
       background-color: #eee9a2;
       /* 위아래 여백 조정 */
       padding-left: 20px;
-      
-    }
+      overflow-y: auto;
+
+    }table {
+    border-collapse: collapse;
+    width: 100%;
+
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+    padding-top: 13px;
+    padding-bottom: 13px
+}
   </style>
 </head>
 
 <body>
+  {%csrf_token%}
   <button onclick="rerole()">역할 바꾸기</button>
   <button onclick="signout()">로그아웃</button>
   <div class="container">
     <div class="order-list">
-      <h2>주문 목록</h2>
+      <h2 id ="list_title">주문 접수 목록</h2>
+      <button id ="list_change_btn" onclick = "list_change_btn_click()">서빙 완료 리스트 보기</button>
       <table id="table">
         <!-- 여기에 주문 목록을 표시하는 테이블을 만들어주세요 -->
 
@@ -135,7 +152,8 @@
         <!-- 예시로 2행 8열의 테이블을 만듭니다. -->
         <!-- 각 테이블에는 순차적으로 번호를 부여합니다. -->
         {% for i in "abcdefghij" %}
-        <div class="table" id="{{forloop.counter}}" onclick="table_clicked({{ forloop.counter }})">테이블 {{forloop.counter }}</div>
+        <div class="table" id="{{forloop.counter}}" onclick="table_clicked({{ forloop.counter }})">테이블 {{forloop.counter}}
+        </div>
         {% endfor %}
         <div class="table2" id="11" style="z-index: 1;" onclick="table_clicked(11)">테이블 11</div>
         <div class="table3"></div>
@@ -148,7 +166,7 @@
       <div class="rectangle" style="margin-top: -20px;">운동장</div>
       <div class="reception_title">
         주문 접수하기
-        <button onclick="addOrder()">주문 추가</button>
+        <button onclick="recept()">주문 추가</button>
       </div>
       <div style="display: flex;flex-direction: row; width:95%;">
         <div class="reception" style="display: grid;
@@ -161,7 +179,7 @@
           <button onclick="addOrder('오뎅탕')">오뎅탕</button>
           <button onclick="addOrder('떡볶이')">떡볶이</button>
           <button onclick="addOrder('모듬튀김')">모듬튀김</button>
-          <button onclick="addOrder('가라아게&감자튀김')" style="font-size: 10px";>가라아게&감자튀김</button>
+          <button onclick="addOrder('가라아게&감자튀김')" style="font-size: 10px" ;>가라아게&감자튀김</button>
           <button onclick="addOrder('순대')">순대</button>
           <button onclick="addOrder('콘치즈')">콘치즈</button>
           <button onclick="addOrder('황도')">황도</button>
@@ -170,16 +188,37 @@
           <button onclick="addOrder('생수')">생수</button>
           <button onclick="addOrder('#기타')">기타</button>
         </div>
-        <div class="reception" id="reception_select_box" style = "min-height: 30vh;    padding-top: 10px;
+        <div class="reception" id="reception_select_box" style="min-height: 30vh;    padding-top: 10px;
         padding-bottom: 10px">
-
         </div>
       </div>
     </div>
   </div>
 </body>
 <script>
+
   let selected_table_no = "";
+  function get_parameter(string){
+    let url = new URL(window.location.href);
+    // URLSearchParams 객체를 사용하여 쿼리 파라미터를 가져옵니다.
+    let params = new URLSearchParams(url.search);
+    // 특정 파라미터를 가져옵니다.
+    let parameterValue = params.get(string);
+    // 가져온 파라미터를 출력합니다.
+    console.log(parameterValue)
+    return parameterValue;
+  }
+
+  if (get_parameter("list_flag") == "complete"){
+    
+    show_complete_order()
+    let title = document.getElementById("list_title")
+    title.textContent = "주문 완료 목록"
+    console.log(title)
+  }else{
+    show_unserved_order();
+  }
+
   function table_clicked(tableNumber) {
     if (selected_table_no == "") {
       selected_table_no = tableNumber;
@@ -202,23 +241,27 @@
     }
   }
   let reception_box = document.getElementById("reception_select_box")
-  function addTableRow() {
+  function addTableRow(menu) {
+
     let newRow = document.createElement('tr');
 
     // 음식메뉴 입력란
     let foodCell = document.createElement('td');
-    foodCell.innerHTML = '<input type="text" class="food-input" style = "width: 86px">';
+    foodCell.innerHTML = `<input type="text" class="food-input" style = "width: 160px" value = ${menu}>`;
     newRow.appendChild(foodCell);
-
     // 개수 선택 입력란
     let countCell = document.createElement('td');
-    countCell.innerHTML = '<input type="number" class="count-input" min="1" style = "width:30px">';
+    countCell.innerHTML = '<input type="number" class="count-input" min="1" style = "width:70px" value = "1">';
     newRow.appendChild(countCell);
 
     // 디테일 입력란
     let detailCell = document.createElement('td');
     detailCell.innerHTML = '<input type="text" class="detail-input">';
     newRow.appendChild(detailCell);
+// 디테일 입력란
+    let isServiceCell = document.createElement('td');
+    isServiceCell.innerHTML = '<input type="checkbox" class="detail-input">';
+    newRow.appendChild(isServiceCell);
 
     // 삭제 버튼
     let deleteCell = document.createElement('td');
@@ -244,16 +287,19 @@
             <th>메뉴</th>
             <th>개수</th>
             <th>디테일</th>
+            <th>서비스</th>
             <th>삭제</th>
           </tr>
         </table>
         <button onclick="addTableRow()">+ 추가</button>
       </div>
     `;
-      addTableRow();
+      addTableRow("-");
     }
   }
   function show_unserved_order() {
+    let title = document.getElementById("list_title")
+    title.textContent = "주문 접수 목록"
     let table = document.getElementById("table")
     let code = `<tr>
                 <th>주문번호</th>
@@ -267,41 +313,201 @@
       for (let i = 0; i < result.length; i++) {
         var a = result[i]
         code += `<tr>
-              <th>${a.id}</th>
-              <th>${a["tableNumber"]}</th>
+              <th>#${a.id}</th>
+              <th>${a["tableNumber"]}번</th>
               <th>${a["food"]}</th>
-              <th>${a["count"]}</th>
-              <th>${a["receptionTime"]}</th>
+              <th>${a["count"]}개</th>
+              <th>${formatTime(a["receptionTime"])}</th>
+              <th style = "position:relative; width : 20px">
+                <img onclick="serveComplete(${a.id})"  src='{% static "/image/checked.png" %}' style = " cursor: pointer;width : 25px; height:25px; top:6px;left:5px;position:absolute;">
+                <img onclick="deleteReception(${a.id})" src='{% static "/image/bin.png" %}' style = " cursor: pointer;width : 25px; height:25px;top:40px; left:5px;position:absolute;">
+              <!-- 추가된 부분 -->
+              </th>
           </tr>
           `
       }
       console.log(code)
-      table.innerHTML += code;
+      table.innerHTML = code;
     })
   }
-  show_unserved_order()
+  function deleteReception(orderId){
+    const ajax = fetch("/deleteReception", {
+      method: "post",
+      headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{csrf_token}}",
+        },
+        body: JSON.stringify({orderID : orderId})
+    }).then(function(res){
+      window.alert("삭제완료") 
+      page_reload()}
+    );
+    }
+  function reception_withdraw(orderId){
+        // 철회 버튼을 눌렀을 때 실행될 함수입니다.
+    // orderId를 이용하여 서빙완료 작업을 처리합니다.
+    const ajax = fetch("/reception_withdraw", {
+      method: "post",
+      headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{csrf_token}}",
+        },
+        body: JSON.stringify({orderID : orderId})
+    }).then(function(res){
+      window.alert("철회완료") 
+      page_reload()}
+    );
+    }
+  function show_complete_order() {
+    let title = document.getElementById("list_title")
+    console.log(title)
+    title.textContent = "주문 완료 목록"
+    let table = document.getElementById("table")
+    let code = `<tr>
+                <th>주문번호</th>
+                <th>테이블번호</th>
+                <th>음식</th>
+                <th>개수</th>
+                <th>주문시간</th>
+            </tr>`
+    const ajax = fetch("/get_served").then((res) => res.json()).then(function (result) {
+      console.log(result)
+      for (let i = 0; i < result.length; i++) {
+        var a = result[i]
+        code += `<tr>
+              <th>#${a.id}</th>
+              <th>${a["tableNumber"]}번</th>
+              <th>${a["food"]}</th>
+              <th>${a["count"]}개</th>
+              <th>${formatTime(a["receptionTime"])}</th>
+              <th><button onclick="reception_withdraw(${a.id})" style = "font-size:10px; width : 40px">완료 철회하기</button></th> <!-- 추가된 부분 -->
+          </tr>
+          `
+      }
+      console.log(code)
+      table.innerHTML = code;
+    })
+  }
+  function list_change_btn_click(){
+    let title = document.getElementById("list_title")
+    let list = document.getElementById("list_change_btn")
+    console.log(title.textContent)
+    if (title.textContent == "주문 완료 목록"){
+      //완료 리스트 보여주는 코드
+      show_unserved_order()
+    }else if(title.textContent == "주문 접수 목록"){
+      //접수 리스트 보여주는 코드
+      show_complete_order()
+    }
+  }
+  function page_reload(){
+    // 현재 URL에서 기본 URL 추출
+    let title = document.getElementById("list_title")
+    let baseURL = window.location.origin + window.location.pathname;
+    if (title.textContent == "주문 완료 목록"){
+      //완료 리스트 보여주는 코드
+      param = "?list_flag=complete"
+    }else if(title.textContent == "주문 접수 목록"){
+      //접수 리스트 보여주는 코드
+      param = "?list_flag=unserved"
+    }
+    // 새로운 URL 생성
+    let newURL = baseURL + param;
 
+    // 페이지 다시 로드
+    window.location.href = newURL;
+    }
+  function serveComplete(orderId) {
+    // 서빙완료 버튼을 눌렀을 때 실행될 함수입니다.
+    // orderId를 이용하여 서빙완료 작업을 처리합니다.
+    // 여기에 필요한 서빙완료 처리 코드를 작성하세요.
+    const ajax = fetch("/register_serve_complete", {
+      method: "post",
+      headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{csrf_token}}",
+        },
+        body: JSON.stringify({orderID : orderId})
+    }).then(function(res){window.alert("처리완료") 
+      page_reload()}
+    );
+    }
+  function formatTime(dateTimeString) {
+  const dateTime = new Date(dateTimeString);
+  const hours = dateTime.getHours().toString().padStart(2, '0');
+  const minutes = dateTime.getMinutes().toString().padStart(2, '0');
+  return `${hours}시 ${minutes}분`;
+}
   function signout() {
-    const ajax = fetch("/signout").then((res) => location.reload())
+    const ajax = fetch("/signout").then((res) => page_reload())
   }
   function rerole() {
     console.log("123")
     location.href = "/main?ischange=true"
   }
-  function addOrder(menu){
+  function addOrder(menu) {
     let table = document.getElementById("order-table")
-    if (table!=null){
+    if (table != null) {
       let childElements = table.children;
-// <tr> 태그만 선택하기
+      // <tr> 태그만 선택하기
       let trElements = Array.from(childElements).filter(element => element.tagName === 'TR');
-      trElements.forEach(function(tr){
-          if (menu == tr.children[0].textContent){
-            
+      let tr_index = null;
+      let count = 0;
+      if (trElements.length==1 && trElements[0].children[0].querySelector('input').value == "-"){
+        let inputElement = trElements[0].children[0].querySelector("input")
+        inputElement.value = menu;
+      }else {
+        trElements.forEach(function (tr) {
+          count += 1;
+          if (menu == tr.children[0].children[0].value) {
+            console.log("123")
+            tr_index = count;
           }
-      })
+        }
+        )
+        if (tr_index == null) {
+          addTableRow(menu);
+        } else {
+          let inputElement = trElements[tr_index - 1].children[1].querySelector('input');
+          inputElement.value = parseInt(inputElement.value) + 1;
+        }
+      }
     }
   }
+  function recept(){
+    console.log(document.getElementById("order-table"))
+    table = document.getElementById("order-table")
+    let childElements = table.children;
+    let trElements = Array.from(childElements).filter(element => element.tagName === 'TR');
+    let orderArray = [];
 
+    trElements.forEach(function(tr) {
+        let food = tr.children[0].children[0].value;
+        let count = tr.children[1].children[0].value;
+        let description = tr.children[2].children[0].value;
+        let isService = tr.children[3].children[0].value;
+        let orderInfo = {
+            food: food,
+            count: count,
+            detail: description,
+            tableNo: selected_table_no,
+            isService : isService
+        };
+
+        orderArray.push(orderInfo);
+    });
+    console.log(orderArray)
+    const ajax = fetch("/register_order", {
+        method: "post",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{csrf_token}}",
+        },
+        body: JSON.stringify(orderArray)
+    }).then(function(res){window.alert("처리완료") 
+      page_reload()}
+    );
+  }
 </script>
 
 </html>

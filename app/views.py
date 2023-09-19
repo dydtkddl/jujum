@@ -106,27 +106,39 @@ def rerole(request):
 
 def register_order(request):
   if request.method == "POST":
-    json_data = json.loads()
-    food = json_data["food"]
-    count = json_data["count"]
-    tableNumber = json_data["tableNumber"]
-    detail = json_data["detail"]
-    isService = json_data["isService"]
-    order = Order.objects.create(food = food , count =count, tableNumber = tableNumber , detail = detail, isService = isService,receptionTime = datetime.datetime.now())
-    order.save()
+    json_data = json.loads(request.body)
+    for data in json_data:
+      food = data["food"].replace("'","")
+      food = Food.objects.get(name = food)
+      count = data["count"]
+      tableNumber = data["tableNo"]
+      detail = data["detail"]
+      isService = data["isService"]
+      if isService =="on":
+        isService = 1
+      else:
+        isService = 0
+      print(food, count, tableNumber, detail, isService)
+      order = Order.objects.create(food = food , count =count, tableNumber = tableNumber , detail = detail, isService = isService,receptionTime = datetime.datetime.now())
+      order.save()
+      if food not in ["콜라","생수","사이다"]:
+        for i in range(int(count)):
+          nth = i+1
+          eachorder = EachOrder.objects.create(order=order, nth = nth)
+          eachorder.save()
+    
     return HttpResponse(1)
 
   return HttpResponse(1)
   
 def register_serve_complete(request):
+  #서빙완료 저장함수 근데 아직 다 완성안됌
   if request.method == "POST":
-    json_data = json.loads()
-    id = json_data["id"]
-    food = json_data["food"]
-    count = json_data["count"]
-    order = Order.objects.get(id = id, name = food, count = count)
+    json_data = json.loads(request.body)
+    id = json_data["orderID"]
+    order = Order.objects.get(id = id)
+    print(order)
     order.servedTime = datetime.datetime.now()
-    ##
     order.save()
     
   return HttpResponse(12)
@@ -134,8 +146,61 @@ def render_(request):
   return render(request, "app/1.html")
 
 def get_not_served(request):
-  unserved_orders = Order.objects.filter(servedTime__isnull=True)
+  unserved_orders = Order.objects.filter(servedTime__isnull=True).exclude(food__in=['콜라','생수', '사이다']).order_by('receptionTime')
   lis = []
   for unserved_order in unserved_orders:
     lis.append(model_to_dict(unserved_order))
   return JsonResponse(lis, safe =False)
+def get_served(request):
+  served_orders = Order.objects.filter(servedTime__isnull=False).exclude(food__in=['콜라','생수', '사이다']).order_by('receptionTime')
+  lis = []
+  for served_order in served_orders:
+    lis.append(model_to_dict(served_order))
+  return JsonResponse(lis, safe =False)
+
+def reception_withdraw(request):
+  if request.method == "POST":
+    json_data = json.loads(request.body)
+    id = json_data["orderID"]
+    order = Order.objects.get(id = id)
+    print(order)
+    order.servedTime = None
+    order.save()
+    
+  return HttpResponse(12)
+def deleteReception(request):
+  if request.method == "POST":
+    json_data = json.loads(request.body)
+    id = json_data["orderID"]
+    order = Order.objects.get(id = id)
+    order.delete()  
+  return HttpResponse(12)
+def get_not_cook(request):
+    
+  uncooked_orders = EachOrder.objects.filter(isCooked = 0, cooker__isnull=True).order_by('order__receptionTime')
+  print(uncooked_orders)
+  lis = []
+  for uncooked_order in uncooked_orders:
+    dd = model_to_dict(uncooked_order)
+    dd["food"] = uncooked_order.order.food.name
+    dd["count"] = uncooked_order.order.count
+    dd["receptionTime"] = uncooked_order.order.receptionTime
+    dd["detail"] = uncooked_order.order.detail
+    dd["orderId"] = uncooked_order.order.id
+    lis.append(dd)
+  print(lis)
+  return JsonResponse(lis, safe =False)
+def cookOccupy(request):
+  if request.method == "POST":
+    json_data = json.loads(request.body)
+    id = json_data["orderID"]
+    nth= json_data["nth"]
+    studentNumber = request.session.get("studentNumber")
+    print(id,nth,studentNumber)
+    order = Order.objects.get(id = id)
+    cooker = Users.objects.get(studentNumber = studentNumber)
+    eachorder = EachOrder.objects.get(order = order , nth = nth)
+    eachorder.isCooked = 1
+    eachorder.cooker = cooker
+    eachorder.save()
+  return HttpResponse(12)
