@@ -122,10 +122,11 @@
 
 th, td {
     border: 1px solid #ccc;
-    padding: 8px;
+    padding: 3px;
     text-align: center;
-    padding-top: 13px;
-    padding-bottom: 13px
+    padding-top: 4px;
+    padding-bottom: 4px;
+    font-size: 8px;
 }
   </style>
 </head>
@@ -291,7 +292,6 @@ th, td {
             <th>삭제</th>
           </tr>
         </table>
-        <button onclick="addTableRow()">+ 추가</button>
       </div>
     `;
       addTableRow("-");
@@ -313,14 +313,14 @@ th, td {
       for (let i = 0; i < result.length; i++) {
         var a = result[i]
         code += `<tr>
-              <th>#${a.id}</th>
+              <th>#${a.id}-${a.nth}</th>
               <th>${a["tableNumber"]}번</th>
               <th>${a["food"]}</th>
-              <th>${a["count"]}개</th>
+              <th>1개</th>
               <th>${formatTime(a["receptionTime"])}</th>
-              <th style = "position:relative; width : 20px">
-                <img onclick="serveComplete(${a.id})"  src='{% static "/image/checked.png" %}' style = " cursor: pointer;width : 25px; height:25px; top:6px;left:5px;position:absolute;">
-                <img onclick="deleteReception(${a.id})" src='{% static "/image/bin.png" %}' style = " cursor: pointer;width : 25px; height:25px;top:40px; left:5px;position:absolute;">
+              <th style = "position:relative; width :40px">
+                <img onclick="serveComplete(${a.id},${a.nth})"  src='{% static "/image/checked.png" %}' style = " cursor: pointer;width : 20px; height:20px; top:0px;left:2px;position:absolute;">
+                <img onclick="deleteReception(${a.id})" src='{% static "/image/bin.png" %}' style = " cursor: pointer;width : 20px; height:20px;top:0px; right:2px;position:absolute;">
               <!-- 추가된 부분 -->
               </th>
           </tr>
@@ -331,6 +331,8 @@ th, td {
     })
   }
   function deleteReception(orderId){
+    var result = window.confirm("##주의##\n정말 삭제하시겠습니까?\n삭제하게 되면 이미 해당 음식을 조리중인 사람에게 취소사실을 알려야합니다.") 
+    if (result == true){
     const ajax = fetch("/deleteReception", {
       method: "post",
       headers: {
@@ -339,11 +341,14 @@ th, td {
         },
         body: JSON.stringify({orderID : orderId})
     }).then(function(res){
-      window.alert("삭제완료") 
+      window.confirm("삭제되었습니다\n반드시 취소한 주문번호를 해당 음식 조리 작업자에 알리시기 바랍니다") 
       page_reload()}
     );
     }
-  function reception_withdraw(orderId){
+    else{
+      window.alert("삭제요청을 취소하셨습니다")
+    }}
+  function reception_withdraw(orderId,nth){
         // 철회 버튼을 눌렀을 때 실행될 함수입니다.
     // orderId를 이용하여 서빙완료 작업을 처리합니다.
     const ajax = fetch("/reception_withdraw", {
@@ -352,7 +357,7 @@ th, td {
             "Content-Type": "application/json",
             "X-CSRFToken": "{{csrf_token}}",
         },
-        body: JSON.stringify({orderID : orderId})
+        body: JSON.stringify({orderID : orderId,nth:nth})
     }).then(function(res){
       window.alert("철회완료") 
       page_reload()}
@@ -375,12 +380,12 @@ th, td {
       for (let i = 0; i < result.length; i++) {
         var a = result[i]
         code += `<tr>
-              <th>#${a.id}</th>
+              <th>#${a.id}-${a.nth}</th>
               <th>${a["tableNumber"]}번</th>
               <th>${a["food"]}</th>
-              <th>${a["count"]}개</th>
+              <th>1개</th>
               <th>${formatTime(a["receptionTime"])}</th>
-              <th><button onclick="reception_withdraw(${a.id})" style = "font-size:10px; width : 40px">완료 철회하기</button></th> <!-- 추가된 부분 -->
+              <th><button onclick="reception_withdraw(${a.id},${a.nth})" style = "font-size:10px; width : 40px">완료 철회하기</button></th> <!-- 추가된 부분 -->
           </tr>
           `
       }
@@ -417,7 +422,7 @@ th, td {
     // 페이지 다시 로드
     window.location.href = newURL;
     }
-  function serveComplete(orderId) {
+  function serveComplete(orderId,nth) {
     // 서빙완료 버튼을 눌렀을 때 실행될 함수입니다.
     // orderId를 이용하여 서빙완료 작업을 처리합니다.
     // 여기에 필요한 서빙완료 처리 코드를 작성하세요.
@@ -427,7 +432,7 @@ th, td {
             "Content-Type": "application/json",
             "X-CSRFToken": "{{csrf_token}}",
         },
-        body: JSON.stringify({orderID : orderId})
+        body: JSON.stringify({orderID : orderId,nth:nth})
     }).then(function(res){window.alert("처리완료") 
       page_reload()}
     );

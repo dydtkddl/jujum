@@ -1,11 +1,10 @@
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <style>
-    th,
+     th,
     td {
       border: 1px solid #ccc;
       padding: 8px;
@@ -15,23 +14,20 @@
       font-size: 10px;
     }
 
-    .container {
-      display: flex;
-      flex-direction: row;
-    }
   </style>
 </head>
-
+{%csrf_token%}
+{% load static %}
 <body>
-  {%csrf_token%}
-  {% load static %}
   <button onclick="rerole()">역할 바꾸기</button>
   <button onclick="signout()">로그아웃</button>
+  배달원 화면
+
+ 
   <div class="container">
     <div class="order-list">
-      <h2 id="list_title">요리 해야하는 주문 목록</h2>
+      <h2 id="list_title">배달 신청 목록</h2>
       <table id="table">
-        <!-- 여기에 주문 목록을 표시하는 테이블을 만들어주세요 -->
         <tr>
           <th>주문번호</th>
           <th>음식</th>
@@ -39,6 +35,7 @@
           <th>주문시간</th>
           <th>내가접수</th>
       </tr>
+        <!-- 여기에 주문 목록을 표시하는 테이블을 만들어주세요 -->
       </table>
     </div>
     <div>
@@ -46,12 +43,12 @@
         <h2 id="list_title">당신이 접수한 목록</h2>
         <table id="table2">
           <!-- 여기에 주문 목록을 표시하는 테이블을 만들어주세요 -->
-          `<tr>
+          <tr>
             <th>주문번호</th>
             <th>음식</th>
             <th>개수</th>
             <th>주문시간</th>
-            <th>배달원호출</th>
+            <th>취소하기</th>
         </tr>
         </table>
       </div>
@@ -59,60 +56,53 @@
   </div>
 </body>
 <script>
-  show_uncooked_order()
-  show_your_order()
-  function show_your_order() {
+  function signout(){
+    const ajax = fetch("/signout").then((res)=>location.reload())
+  }
+  function rerole(){
+    console.log("123")
+    location.href =  "/main?ischange=true"
+  }
+  show_delivery_list()
+  show_your_delivery()
+  function show_your_delivery() {
     let table = document.getElementById("table2")
     let code = `<tr>
                     <th>주문번호</th>
                     <th>음식</th>
                     <th>개수</th>
                     <th>주문시간</th>
-                    <th>배달원호출</th>
+                    <th>취소하기</th>
                 </tr>`
-    const ajax = fetch("/get_your_cook").then((res) => res.json()).then(function (result) {
+    const ajax = fetch("/get_your_delivery").then((res) => res.json()).then(function (result) {
       console.log(result)
       for (let i = 0; i < result.length; i++) {
         var a = result[i]
         code += `<tr>
-                    <th>#${a.orderId}=${a.nth}</th>
+                    <th>#${a.orderId}</th>
                     <th>${a.food}</th>
-                    <th>1개 </th>
+                    <th>${a.nth}번째/${a.count}개 </th>
                     <th>${formatTime(a["receptionTime"])}</th>
                     <th style = "position:relative; width : 20px">`
-        if (a.is_delivery_call == 1 &&  a.is_delivery_user !=0) {
-          code += `<img on_off="1" onclick="delivery_call(${a.orderId},${a.nth})"  src='{% static "/image/delivery-bike.png" %}' style = " cursor: pointer;width : 25px; height:25px; top:6px;left:5px;position:absolute;">`
-        } else if (a.is_delivery_call == 1 &&  a.is_delivery_user==0) {
-        code +=  `<img on_off="1" onclick="delivery_call(${a.orderId},${a.nth})"  src='{% static "/image/bell.png" %}' style = " cursor: pointer;width : 25px; height:25px; top:6px;left:5px;position:absolute;">`
-        }
-        else {
-          code += `  <img on_off="0"onclick="delivery_call(${a.orderId},${a.nth})"  src='{% static "/image/fast-delivery.png" %}' style = " cursor: pointer;width : 25px; height:25px; top:6px;left:5px;position:absolute;">
-                    <!-- 추가된 부분 -->
-                    </th>
-                </tr>`}
+        code += `<img onclick="delivery_withdraw(${a.orderId},${a.nth})"  src='{% static "/image/delivery-bike.png" %}' style = " cursor: pointer;width : 25px; height:25px; top:6px;left:5px;position:absolute;">`
+        
 
         console.log(code)
         table.innerHTML = code;
       }
     })
   }
-  function delivery_call(orderId, nth) {
-    delivery_flag = event.target.getAttribute("on_off")
+  function delivery_withdraw(orderId, nth) {
     
-    const ajax = fetch("/delivery_call", {
+    const ajax = fetch("/delivery_withdraw", {
       method: "post",
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": "{{csrf_token}}",
       },
-      body: JSON.stringify({ orderID: orderId, nth: nth, on_off:delivery_flag })
+      body: JSON.stringify({ orderID: orderId, nth: nth})
     }).then(function (res) {
-      if (delivery_flag==1){
-      window.alert("호출 취소 완료")
-
-      }else{
-      window.alert("배달원 호출 신청 완료(곧 배달원이 갈 예정)")
-      }
+      window.alert("배달 취소 완료")
       page_reload()
     }
     );
@@ -145,7 +135,7 @@
     }
     );
   }
-  function show_uncooked_order() {
+  function show_delivery_list() {
     let table = document.getElementById("table")
     let code = `<tr>
                     <th>주문번호</th>
@@ -154,17 +144,17 @@
                     <th>주문시간</th>
                     <th>내가접수</th>
                 </tr>`
-    const ajax = fetch("/get_not_cook").then((res) => res.json()).then(function (result) {
+    const ajax = fetch("/get_delivery_call_list").then((res) => res.json()).then(function (result) {
       console.log(result)
       for (let i = 0; i < result.length; i++) {
         var a = result[i]
         code += `<tr>
-                    <th>#${a.orderId}-${a.nth}</th>
+                    <th>#${a.orderId}</th>
                     <th>${a.food}</th>
-                    <th>1개 </th>
+                    <th>${a.nth}번째/${a.count}개 </th>
                     <th>${formatTime(a["receptionTime"])}</th>
                     <th style = "position:relative; width : 20px">
-                      <img onclick="cookOccupy(${a.orderId},${a.nth})"  src='{% static "/image/checked.png" %}' style = " cursor: pointer;width : 25px; height:25px; top:6px;left:5px;position:absolute;">
+                      <img onclick="delivery_occupy(${a.orderId},${a.nth})"  src='{% static "/image/checked.png" %}' style = " cursor: pointer;width : 25px; height:25px; top:6px;left:5px;position:absolute;">
                     <!-- 추가된 부분 -->
                     </th>
                 </tr>
@@ -174,8 +164,8 @@
       }
     })
   }
-  function cookOccupy(orderId, nth) {
-    const ajax = fetch("/cookOccupy", {
+  function delivery_occupy(orderId, nth) {
+    const ajax = fetch("/delivery_occupy", {
       method: "post",
       headers: {
         "Content-Type": "application/json",
@@ -192,7 +182,7 @@
     // 현재 URL에서 기본 URL 추출
     let title = document.getElementById("list_title")
     let baseURL = window.location.origin + window.location.pathname;
- 
+    
     // 새로운 URL 생성
     let newURL = baseURL
 
@@ -214,7 +204,5 @@
     location.href = "/main?ischange=true"
   }
 
-
 </script>
-
 </html>

@@ -18,4 +18,10 @@ urlpatterns = [
   path("deleteReception", deleteReception),
   path("get_not_cook", get_not_cook),
   path("cookOccupy", cookOccupy),
+  path("get_your_cook", get_your_cook),
+  path("delivery_call", delivery_call),
+  path("get_delivery_call_list", get_delivery_call_list),
+  path("get_your_delivery", get_your_delivery),
+  path("delivery_occupy", delivery_occupy),
+  path("delivery_withdraw", delivery_withdraw),
 ]

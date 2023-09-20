@@ -28,3 +28,6 @@ class EachOrder(models.Model):
   nth = models.IntegerField()
   isCooked = models.IntegerField(default=0)
   cooker = models.ForeignKey(Users, on_delete=models.CASCADE, null=True)
+  is_delivery_call = models.IntegerField(default = 0)
+  delivery_user = models.ForeignKey(Users, on_delete=models.CASCADE, null=True,related_name="delivery_user")
+  servedTime = models.DateTimeField(null=True)

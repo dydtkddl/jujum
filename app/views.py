@@ -132,40 +132,61 @@ def register_order(request):
   return HttpResponse(1)
   
 def register_serve_complete(request):
-  #서빙완료 저장함수 근데 아직 다 완성안됌
   if request.method == "POST":
     json_data = json.loads(request.body)
     id = json_data["orderID"]
+    nth = json_data["nth"]
     order = Order.objects.get(id = id)
-    print(order)
-    order.servedTime = datetime.datetime.now()
-    order.save()
-    
+    eachorder = EachOrder.objects.get(nth = nth,order= order)
+    print(eachorder)
+    eachorder.servedTime = datetime.datetime.now()
+    eachorder.save()
+    print(order.count , len(EachOrder.objects.filter(order=order,servedTime__isnull = False)))
+    print(type(order.count) , type(len(EachOrder.objects.filter(order=order,servedTime__isnull = False))))
+    if (order.count == len(EachOrder.objects.filter(order=order,servedTime__isnull = False))):
+      order.servedTime =  datetime.datetime.now()
+      order.save()
   return HttpResponse(12)
 def render_(request):
   return render(request, "app/1.html")
 
 def get_not_served(request):
-  unserved_orders = Order.objects.filter(servedTime__isnull=True).exclude(food__in=['콜라','생수', '사이다']).order_by('receptionTime')
+  unserved_orders = EachOrder.objects.filter(servedTime__isnull=True).exclude(order__food__in=['콜라','생수', '사이다']).order_by('order__receptionTime')
   lis = []
   for unserved_order in unserved_orders:
-    lis.append(model_to_dict(unserved_order))
+    dd = model_to_dict(unserved_order)
+    dd["id"] = unserved_order.order.id
+    dd["nth"] = unserved_order.nth
+    dd["tableNumber"] = unserved_order.order.tableNumber
+    dd["food"] = unserved_order.order.food.name
+    dd["receptionTime"] = unserved_order.order.receptionTime
+    lis.append(dd)
   return JsonResponse(lis, safe =False)
 def get_served(request):
-  served_orders = Order.objects.filter(servedTime__isnull=False).exclude(food__in=['콜라','생수', '사이다']).order_by('receptionTime')
+  served_orders = EachOrder.objects.filter(servedTime__isnull=False).exclude(order__food__in=['콜라','생수', '사이다']).order_by('order__receptionTime')
   lis = []
   for served_order in served_orders:
-    lis.append(model_to_dict(served_order))
+    dd = model_to_dict(served_order)
+    dd["id"] = served_order.order.id
+    dd["nth"] = served_order.nth
+    dd["tableNumber"] = served_order.order.tableNumber
+    dd["food"] = served_order.order.food.name
+    dd["receptionTime"] = served_order.order.receptionTime
+    lis.append(dd)
   return JsonResponse(lis, safe =False)
 
 def reception_withdraw(request):
   if request.method == "POST":
     json_data = json.loads(request.body)
     id = json_data["orderID"]
+    nth= json_data["nth"]
     order = Order.objects.get(id = id)
+    eachorder= EachOrder.objects.get(order= order, nth = nth)
     print(order)
+    eachorder.servedTime = None
     order.servedTime = None
     order.save()
+    eachorder.save()
     
   return HttpResponse(12)
 def deleteReception(request):
@@ -177,7 +198,7 @@ def deleteReception(request):
   return HttpResponse(12)
 def get_not_cook(request):
     
-  uncooked_orders = EachOrder.objects.filter(isCooked = 0, cooker__isnull=True).order_by('order__receptionTime')
+  uncooked_orders = EachOrder.objects.filter(isCooked = 0, cooker__isnull=True).exclude(order__food__in=['콜라','생수', '사이다']).exclude(order__servedTime__isnull=False).order_by('order__receptionTime')
   print(uncooked_orders)
   lis = []
   for uncooked_order in uncooked_orders:
@@ -204,3 +225,101 @@ def cookOccupy(request):
     eachorder.cooker = cooker
     eachorder.save()
   return HttpResponse(12)
+def get_your_cook(request):
+  studentNumber = request.session.get("studentNumber")
+  you = Users.objects.get(studentNumber = studentNumber)
+  uncooked_orders = EachOrder.objects.filter(cooker = you,isCooked = 1).exclude(order__servedTime__isnull=False).order_by('order__receptionTime')
+  print(uncooked_orders)
+  lis = []
+  for uncooked_order in uncooked_orders:
+    dd = model_to_dict(uncooked_order)
+    dd["food"] = uncooked_order.order.food.name
+    dd["count"] = uncooked_order.order.count
+    dd["receptionTime"] = uncooked_order.order.receptionTime
+    dd["detail"] = uncooked_order.order.detail
+    dd["orderId"] = uncooked_order.order.id
+    dd["is_delivery_call"] = uncooked_order.is_delivery_call
+    if (uncooked_order.delivery_user!=None):
+      dd["is_delivery_user"] = uncooked_order.delivery_user.name
+    else:
+      dd["is_delivery_user"] = 0
+    lis.append(dd)
+  print(lis)
+  return JsonResponse(lis, safe =False)
+def delivery_call(request):
+  if request.method == "POST":
+    json_data = json.loads(request.body)
+    id = json_data["orderID"]
+    nth= json_data["nth"]
+    on_off = json_data["on_off"]
+    studentNumber = request.session.get("studentNumber")
+    print(id,nth,studentNumber)
+    order = Order.objects.get(id = id)
+    cooker = Users.objects.get(studentNumber = studentNumber)
+    eachorder = EachOrder.objects.get(order = order , nth = nth)
+    print(type(on_off))
+    if on_off == "1":
+      eachorder.is_delivery_call = 0
+      eachorder.delivery_user = None
+    else:
+      eachorder.is_delivery_call = 1
+
+    eachorder.save()
+  return HttpResponse(12)
+def get_delivery_call_list(request):
+  delivery_calls = EachOrder.objects.filter(isCooked = 1, cooker__isnull=False, is_delivery_call = 1,delivery_user__isnull = True).exclude(order__servedTime__isnull=False).order_by('order__receptionTime')
+  print(delivery_calls)
+  lis = []
+  for delivery_call in delivery_calls:
+    dd = model_to_dict(delivery_call)
+    dd["food"] = delivery_call.order.food.name
+    dd["count"] = delivery_call.order.count
+    dd["receptionTime"] = delivery_call.order.receptionTime
+    dd["detail"] = delivery_call.order.detail
+    dd["orderId"] = delivery_call.order.id
+    lis.append(dd)
+  print(lis)
+  return JsonResponse(lis, safe =False)
+def get_your_delivery(request):
+  studentNumber = request.session.get("studentNumber")
+  you = Users.objects.get(studentNumber = studentNumber)
+  uncooked_orders = EachOrder.objects.filter(delivery_user = you,isCooked = 1).exclude(order__servedTime__isnull=False).order_by('order__receptionTime')
+  print(uncooked_orders)
+  lis = []
+  for uncooked_order in uncooked_orders:
+    dd = model_to_dict(uncooked_order)
+    dd["food"] = uncooked_order.order.food.name
+    dd["count"] = uncooked_order.order.count
+    dd["receptionTime"] = uncooked_order.order.receptionTime
+    dd["detail"] = uncooked_order.order.detail
+    dd["orderId"] = uncooked_order.order.id
+    dd["is_delivery_call"] = uncooked_order.is_delivery_call
+    lis.append(dd)
+  print(lis)
+  return JsonResponse(lis, safe =False)
+def delivery_occupy(request):
+  if request.method == "POST":
+    json_data = json.loads(request.body)
+    id = json_data["orderID"]
+    nth= json_data["nth"]
+    studentNumber = request.session.get("studentNumber")
+    print(id,nth,studentNumber)
+    order = Order.objects.get(id = id)
+    you = Users.objects.get(studentNumber = studentNumber)
+    eachorder = EachOrder.objects.get(order = order , nth = nth)
+    eachorder.delivery_user = you
+    eachorder.save()
+  return HttpResponse(12)
+def delivery_withdraw(request):
+  if request.method == "POST":
+    json_data = json.loads(request.body)
+    id = json_data["orderID"]
+    nth= json_data["nth"]
+    studentNumber = request.session.get("studentNumber")
+    print(id,nth,studentNumber)
+    order = Order.objects.get(id = id)
+    you = Users.objects.get(studentNumber = studentNumber)
+    eachorder = EachOrder.objects.get(order = order , nth = nth)
+    eachorder.delivery_user = None
+    eachorder.save()
+  return HttpResponse(123)
